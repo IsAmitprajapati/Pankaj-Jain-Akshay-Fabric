@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "slipprint",
-    "slug": "slipprint",
+    "name": "Packing Slip",
+    "slug": "packingslip",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.isamitprajapati.packingslip"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "881129cc-c443-4a57-83b4-71ae057d1920"
+      }
     }
   }
 }
