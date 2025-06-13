@@ -22,6 +22,7 @@ import ViewShot from "react-native-view-shot";
 import * as MediaLibrary from "expo-media-library";
 import { getFormatCurrency } from "@/utils/formatCurrency";
 
+
 // Define the item structure
 interface Item {
   id: number;
@@ -318,7 +319,7 @@ export default function HomeScreen() {
                 />
               </View>
 
-              <View style={styles.inputGroup}>
+              {/* <View style={styles.inputGroup}>
                 <Text style={styles.label}>Bundles</Text>
                 <TextInput
                   style={styles.textInput}
@@ -327,7 +328,7 @@ export default function HomeScreen() {
                   placeholder="Enter bundle information"
                   placeholderTextColor="#999"
                 />
-              </View>
+              </View> */}
             </View>
 
             {/* Item Details */}
@@ -446,6 +447,22 @@ export default function HomeScreen() {
                   {/* ₹{getTotalAmount().toFixed(2)} */}
                 </Text>
               </View>
+            </View>
+
+            {/**Bundles */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Bundles</Text>
+              <View style={styles.inputGroup}>
+                {/* <Text style={styles.label}>Bundles</Text> */}
+                 <TextInput
+                  style={styles.textInput}
+                  value={bundles}
+                  onChangeText={setBundles}
+                  placeholder="Enter bundle information"
+                  placeholderTextColor="#999"
+                />
+              </View>
+         
             </View>
 
             {/***Additional details */}
@@ -683,6 +700,7 @@ export default function HomeScreen() {
               </View>
             </ViewShot>
           </View>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
