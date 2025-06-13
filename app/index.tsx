@@ -440,6 +440,13 @@ export default function HomeScreen() {
                 <Text style={styles.addButtonText}>+ Add Item {  items.length < 7  ? "" : "(Max 7 item )"}</Text>
               </TouchableOpacity>
 
+              <View style={[styles.grandTotalContainer]}>
+                <Text style={[styles.grandTotalLabel]}>Total Pieces:</Text>
+                <Text style={styles.grandTotalValue}>
+                  {totalPcs ? `${totalPcs}` : "0"}
+                  {/* ₹{getTotalAmount().toFixed(2)} */}
+                </Text>
+              </View>
               <View style={styles.grandTotalContainer}>
                 <Text style={styles.grandTotalLabel}>Gross Amount:</Text>
                 <Text style={styles.grandTotalValue}>
@@ -447,6 +454,7 @@ export default function HomeScreen() {
                   {/* ₹{getTotalAmount().toFixed(2)} */}
                 </Text>
               </View>
+
             </View>
 
             {/**Bundles */}
@@ -859,12 +867,12 @@ const styles = StyleSheet.create({
     borderColor: "#2196F3",
   },
   grandTotalLabel: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
     color: "#333",
   },
   grandTotalValue: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: "bold",
     color: "#2196F3",
   },
