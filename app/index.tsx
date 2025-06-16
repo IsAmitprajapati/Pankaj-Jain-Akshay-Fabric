@@ -1,34 +1,40 @@
-import React, { useRef, useState, useCallback } from "react";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { getFormatCurrency } from "@/utils/formatCurrency";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import moment from "moment";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Sharing from "expo-sharing";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import moment from "moment";
 import ViewShot from "react-native-view-shot";
-import * as MediaLibrary from "expo-media-library";
-import { getFormatCurrency } from "@/utils/formatCurrency";
-
 
 // Define the item structure
 interface Item {
   id: number;
   itemName: string;
   pc: string;
-  totalMeter: string;
+    totalMet@AssistantEnum(schema: .books.contentType)
+    enum BookContentType: String {
+    case <#Book Content Type#>
+        
+        static var caseDisplayRepresentations: [BookContentType: AppIntents.DisplayRepresentation] = [:]
+    }er: string;
   rate: string;
   total: number;
   itemDescription?: string;
@@ -55,6 +61,7 @@ export default function HomeScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
   const currenctField = useRef(null);
+  const [isPrint, setIsPrint] = useState<boolean>(false);
 
   const evaluateExpression = useCallback((expression: string): number => {
     try {
@@ -174,10 +181,8 @@ export default function HomeScreen() {
     return true;
   };
 
-  const handleGenerateAndShareImage = async () => {
-    if (!validateForm()) return;
-
-    setIsGenerating(true);
+  //image generation and return uri
+  const imageGenerationURI = async () => {
     try {
       const permission = await MediaLibrary.requestPermissionsAsync();
       if (!permission.granted) {
@@ -195,6 +200,45 @@ export default function HomeScreen() {
 
       const uri = await viewShotRef.current.capture();
 
+      return uri;
+    } catch (error) {
+      console.error("Failed to generate image:", error);
+      Alert.alert("Error", "Failed to generate image. Please try again.");
+    }
+  };
+
+  const printLocalImage = async () => {
+    try {
+      setIsPrint(true);
+      const uri = await imageGenerationURI();
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const htmlContent = `
+    <html>
+      <body style="text-align: center;">
+        <img src="data:image/png;base64,${base64}" style="width:100%;max-width:600px;" />
+      </body>
+    </html>
+  `;
+
+      await Print.printAsync({ html: htmlContent });
+    } catch (error) {
+      console.error("Failed to Print Image:", error);
+      Alert.alert("Error", "Failed to Print Image. Please try again.");
+    } finally {
+      setIsPrint(false);
+    }
+  };
+
+  const handleGenerateAndShareImage = async () => {
+    if (!validateForm()) return;
+
+    setIsGenerating(true);
+    try {
+      const uri = await imageGenerationURI();
+
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: "image/png",
@@ -203,8 +247,7 @@ export default function HomeScreen() {
         Alert.alert("Error", "Sharing not available on this device");
       }
     } catch (error) {
-      console.error("Failed to generate image:", error);
-      Alert.alert("Error", "Failed to generate image. Please try again.");
+      Alert.alert("Error", "Sharing not available on this device");
     } finally {
       setIsGenerating(false);
     }
@@ -217,6 +260,7 @@ export default function HomeScreen() {
     setCustomerName("");
     setBundles("");
     setBalanceOutstanding("");
+    setIsPrint(false);
     setItems([
       {
         id: Date.now(),
@@ -434,10 +478,15 @@ export default function HomeScreen() {
                 onPress={addItem}
                 style={[
                   styles.addButton,
-                  { opacity: items.length < 7 ? 1 : 0.8 , backgroundColor : items.length < 7 ? "#4CAF50" : "#88898a"   },
+                  {
+                    opacity: items.length < 7 ? 1 : 0.8,
+                    backgroundColor: items.length < 7 ? "#4CAF50" : "#88898a",
+                  },
                 ]}
               >
-                <Text style={styles.addButtonText}>+ Add Item {  items.length < 7  ? "" : "(Max 7 item )"}</Text>
+                <Text style={styles.addButtonText}>
+                  + Add Item {items.length < 7 ? "" : "(Max 7 item )"}
+                </Text>
               </TouchableOpacity>
 
               <View style={[styles.grandTotalContainer]}>
@@ -454,7 +503,6 @@ export default function HomeScreen() {
                   {/* ₹{getTotalAmount().toFixed(2)} */}
                 </Text>
               </View>
-
             </View>
 
             {/**Bundles */}
@@ -462,7 +510,7 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>Bundles</Text>
               <View style={styles.inputGroup}>
                 {/* <Text style={styles.label}>Bundles</Text> */}
-                 <TextInput
+                <TextInput
                   style={styles.textInput}
                   value={bundles}
                   onChangeText={setBundles}
@@ -470,7 +518,6 @@ export default function HomeScreen() {
                   placeholderTextColor="#999"
                 />
               </View>
-         
             </View>
 
             {/***Additional details */}
@@ -495,20 +542,77 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Action Button */}
-            <TouchableOpacity
-              onPress={handleGenerateAndShareImage}
-              style={styles.shareButton}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.shareButtonText}>
-                  📱 Generate & Share Image
+            {/* <View style={styles.section}>
+              <View style={styles.rowStart}>
+                <Checkbox
+                  style={styles.checkbox}
+                  value={isPrint}
+                  onValueChange={setIsPrint}
+                  color={isPrint ? "#4630EB" : undefined}
+                />
+                <Text style={styles.paragraph}>
+                  Would you like to print it as well?
                 </Text>
-              )}
-            </TouchableOpacity>
+              </View>
+            </View> */}
+
+            {/* Action Button */}
+            <View style={styles.rowStart}>
+              <TouchableOpacity
+                onPress={printLocalImage}
+                style={[
+                  styles.shareButton,
+                  {
+                    width: "48%",
+                    backgroundColor: "transparent",
+                    borderColor: "#000",
+                    borderWidth: 2,
+                  },
+                ]}
+                disabled={isGenerating}
+              >
+                {isPrint ? (
+                  <ActivityIndicator color="#000" size="small" />
+                ) : (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <IconSymbol size={18} name="printer" color={"#000"} />
+                    <Text style={[styles.shareButtonText, { color: "#000" }]}>
+                      Print
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleGenerateAndShareImage}
+                style={[
+                  styles.shareButton,
+                  { width: "48%", backgroundColor: "#000" },
+                ]}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <FontAwesome name="share" size={19} color="white" />
+                    {/* <IconSymbol size={18} name="printer" color={"#fff"} /> */}
+                    <Text style={styles.shareButtonText}>Share Image</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Hidden ViewShot for Image Generation */}
@@ -645,7 +749,7 @@ export default function HomeScreen() {
                     <Text
                       style={[
                         styles.printTableCell,
-                        { width: "45%", fontWeight: "semibold" },
+                        { width: "45%", fontWeight: "600"},
                       ]}
                     >
                       Total
@@ -656,7 +760,7 @@ export default function HomeScreen() {
                     <Text
                       style={[
                         styles.printTableCell,
-                        { width: "10%", fontWeight: "semibold" },
+                        { width: "10%", fontWeight: "600" },
                       ]}
                     >
                       {/* {item?.pc || ""} */}
@@ -708,7 +812,6 @@ export default function HomeScreen() {
               </View>
             </ViewShot>
           </View>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -886,11 +989,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: 50,
+    flex: 1,
   },
   shareButtonText: {
-    color: "#fff",
+    color: "#d6d2d2",
     fontWeight: "bold",
     fontSize: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   hiddenView: {
     position: "absolute",
@@ -953,7 +1060,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   printTableHeaderCell: {
-    fontWeight: "semibold",
+    fontWeight: "600",
     textAlign: "center",
   },
   printFooter: {
@@ -974,5 +1081,11 @@ const styles = StyleSheet.create({
   },
   gap: {
     gap: 5,
+  },
+  checkbox: {
+    fontSize: 15,
+  },
+  paragraph: {
+    fontWeight: 600,
   },
 });

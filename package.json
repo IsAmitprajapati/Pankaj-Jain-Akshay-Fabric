@@ -44,7 +44,8 @@
     "react-native-share": "^12.0.11",
     "react-native-view-shot": "4.0.3",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "expo-checkbox": "~4.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
