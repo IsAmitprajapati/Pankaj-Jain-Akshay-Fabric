@@ -1,4 +1,5 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import UpiQRModal from "@/components/UpiQRModal";
 import { getFormatCurrency } from "@/utils/formatCurrency";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,13 +29,8 @@ import ViewShot from "react-native-view-shot";
 interface Item {
   id: number;
   itemName: string;
+  totalMeter: string;
   pc: string;
-    totalMet@AssistantEnum(schema: .books.contentType)
-    enum BookContentType: String {
-    case <#Book Content Type#>
-        
-        static var caseDisplayRepresentations: [BookContentType: AppIntents.DisplayRepresentation] = [:]
-    }er: string;
   rate: string;
   total: number;
   itemDescription?: string;
@@ -62,6 +58,8 @@ export default function HomeScreen() {
   const viewShotRef = useRef<ViewShot>(null);
   const currenctField = useRef(null);
   const [isPrint, setIsPrint] = useState<boolean>(false);
+  const [openQr, setOpenQr] = useState<boolean>(false)
+  const [isGPayLoading,setIsGpayLoading] = useState<boolean>(false)
 
   const evaluateExpression = useCallback((expression: string): number => {
     try {
@@ -136,23 +134,22 @@ export default function HomeScreen() {
   }, [items]);
 
   const getTotalAmountBalanceOutstading = useCallback(() => {
-    const tot = `${getTotalAmount()}${
-      balanceOutstanding
-        ? /^[+-]/.test(balanceOutstanding)
-          ? balanceOutstanding
-          : `+${balanceOutstanding}`
-        : ""
-    }`;
+    const tot = `${getTotalAmount()}${balanceOutstanding
+      ? /^[+-]/.test(balanceOutstanding)
+        ? balanceOutstanding
+        : `+${balanceOutstanding}`
+      : ""
+      }`;
 
     const result = evaluateExpression(tot);
     // If result is valid, format as currency; else return "₹0.00"
     const formattedResult = isNaN(result)
       ? "₹0.00"
       : new Intl.NumberFormat("en-IN", {
-          style: "currency",
-          currency: "INR",
-          minimumFractionDigits: 2,
-        }).format(result);
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 2,
+      }).format(result);
 
     return formattedResult.toString();
   }, [items, balanceOutstanding]);
@@ -170,14 +167,26 @@ export default function HomeScreen() {
   };
 
   const validateForm = () => {
-    // if (!customerName.trim()) {
-    //   Alert.alert("Validation Error", "Please enter customer name");
-    //   return false;
-    // }
-    // if (items.every(item => !item.itemName.trim())) {
-    //   Alert.alert("Validation Error", "Please add at least one item");
-    //   return false;
-    // }
+    const errors = [];
+  
+    if (!customerName) errors.push("Customer name is required");
+
+    const totalPieces = items.reduce((acc, curr) => acc + Number(curr.pc), 0);
+    if (!totalPieces) errors.push("Pieces are required.");
+  
+    if (!bundles.toString().trim()) errors.push("Bundle is required.");
+  
+    const hasItemName = items.some(item => item.itemName.trim());
+    if (!hasItemName) errors.push("Please add at least one item.");
+  
+    const hasRate = items.some(item => item.rate.trim());
+    if (!hasRate) errors.push("Rate is required");
+  
+    if (errors.length) {
+      Alert.alert("Form Error", errors.join('\n')); // or show all using errors.join('\n')
+      return false;
+    }
+  
     return true;
   };
 
@@ -208,6 +217,7 @@ export default function HomeScreen() {
   };
 
   const printLocalImage = async () => {
+    if (!validateForm()) return;
     try {
       setIsPrint(true);
       const uri = await imageGenerationURI();
@@ -283,6 +293,23 @@ export default function HomeScreen() {
   }, []);
 
   const totalPcs = items.reduce((acc, curr) => acc + Number(curr.pc), 0);
+  const upiId = "akshayfabricsmj@icici";
+  const payeeName = "Akshay Fabrics";
+  const amount = getTotalAmountBalanceOutstading()
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+    payeeName
+  )}&am=${amount}&cu=INR`;
+
+  const handleGPay = ()=>{
+    if (!validateForm()) return;
+    setIsGpayLoading(true)
+    setOpenQr(true)
+  }
+
+  const handleCloseGPay = ()=>{
+    setOpenQr(false)
+    setIsGpayLoading(false)
+  }
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -295,8 +322,8 @@ export default function HomeScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           showsVerticalScrollIndicator={false}
-          // keyboardShouldPersistTaps="handled"
-          // contentContainerStyle={{ flexGrow: 1 }}
+        // keyboardShouldPersistTaps="handled"
+        // contentContainerStyle={{ flexGrow: 1 }}
         >
           <View style={styles.headerSection}>
             <Text style={styles.title}>Packing Slip</Text>
@@ -613,7 +640,60 @@ export default function HomeScreen() {
                 )}
               </TouchableOpacity>
             </View>
+
+            {/***payment button */}
+            <TouchableOpacity
+              onPress={handleGPay}
+              style={[
+                styles.shareButton,
+                {
+                  backgroundColor: "#000",
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: isGPayLoading ? 0.7 : 1,
+                },
+              ]}
+              disabled={isGPayLoading}
+            >
+              {isGPayLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {/* <FontAwesome5
+                    name="google-pay"
+                    size={24}
+                    color="white"
+                    style={{ marginRight: 8 }}
+                  /> */}
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Pay with GPay
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
+
+          {/*****QR***/}
+          {/* <View>
+            <QRCode value={upiUrl} size={200} />
+          </View> */}
+          <UpiQRModal
+            amount={getTotalAmountBalanceOutstading()}
+            onClose={handleCloseGPay}
+            payeeName={payeeName}
+            upiId={upiId}
+            visible={openQr}
+          />
 
           {/* Hidden ViewShot for Image Generation */}
           <View style={styles.hiddenView}>
@@ -749,7 +829,7 @@ export default function HomeScreen() {
                     <Text
                       style={[
                         styles.printTableCell,
-                        { width: "45%", fontWeight: "600"},
+                        { width: "45%", fontWeight: "600" },
                       ]}
                     >
                       Total
@@ -992,7 +1072,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   shareButtonText: {
-    color: "#d6d2d2",
+    color: "#ffffff",
     fontWeight: "bold",
     fontSize: 16,
     flexDirection: "row",
