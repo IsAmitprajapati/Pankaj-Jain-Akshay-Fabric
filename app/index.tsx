@@ -26,6 +26,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ViewShot from "react-native-view-shot";
 
+// --- New WhatsAppShareCheckbox component ---
+
 // Define the item structure
 interface Item {
   id: number;
@@ -67,6 +69,9 @@ export default function HomeScreen() {
   const [isPrint, setIsPrint] = useState<boolean>(false);
   const [openQr, setOpenQr] = useState<boolean>(false);
   const [isGPayLoading, setIsGpayLoading] = useState<boolean>(false);
+
+  // WhatsApp share state
+  const [shareToWhatsApp, setShareToWhatsApp] = useState(false);
 
   // Memoized calculations for performance
   const totalPcs = useMemo(
@@ -229,6 +234,7 @@ export default function HomeScreen() {
     }
   };
 
+  // --- Modified: handleGenerateAndShareImage now only shares to gallery/share sheet ---
   const handleGenerateAndShareImage = async () => {
     if (!validateForm()) return;
 
@@ -278,6 +284,41 @@ export default function HomeScreen() {
   const handleCloseGPay = () => {
     setOpenQr(false);
     setIsGpayLoading(false);
+  };
+
+  // --- WhatsApp share handler ---
+  const handleShareToWhatsApp = async (whatsappNumber: string) => {
+    if (!validateForm()) return;
+    setIsGenerating(true);
+    try {
+      const uri = await imageGenerationURI();
+      if (!uri) throw new Error("Image URI not generated");
+
+      // Read file as base64
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Save to cache as a file
+      const fileUri = FileSystem.cacheDirectory + "packing_slip.png";
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // WhatsApp expects a file:// URI
+      const url = `whatsapp://send?phone=${whatsappNumber}&text=Packing Slip Attached`;
+      // Use Linking to open WhatsApp with the image
+      // But WhatsApp does not support direct image sharing via URL, so use Sharing API with WhatsApp as the target
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "image/png",
+        dialogTitle: "Share Packing Slip",
+        UTI: "public.png",
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to share to WhatsApp.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // Redesigned, optimized render
@@ -561,6 +602,15 @@ export default function HomeScreen() {
                 )}
               </TouchableOpacity>
             </View>
+
+            {/* WhatsApp Share Checkbox and Button */}
+            {/* <WhatsAppShareCheckbox
+              checked={shareToWhatsApp}
+              onCheckedChange={setShareToWhatsApp}
+              mobile={mobile}
+              isGenerating={isGenerating}
+              onShare={handleShareToWhatsApp}
+            /> */}
 
             {/* Payment Button */}
             <TouchableOpacity
