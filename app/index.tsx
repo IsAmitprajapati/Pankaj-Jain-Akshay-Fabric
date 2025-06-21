@@ -136,18 +136,18 @@ export default function HomeScreen() {
   };
 
   const validateForm = useCallback(() => {
-    // const errors: string[] = [];
-    // if (!customerName.trim()) errors.push("Customer name is required.");
-    // if (!totalPcs) errors.push("Pieces are required.");
-    // if (!bundles.toString().trim()) errors.push("Bundle is required.");
-    // if (!items.some((item) => item.itemName.trim()))
-    //   errors.push("Please add at least one item.");
-    // if (!items.some((item) => item.rate.trim()))
-    //   errors.push("Rate is required.");
-    // if (errors.length) {
-    //   showError("Form Error", errors.join("\n"));
-    //   return false;
-    // }
+    const errors: string[] = [];
+    if (!customerName.trim()) errors.push("Customer name is required.");
+    if (!totalPcs) errors.push("Pieces are required.");
+    if (!bundles.toString().trim()) errors.push("Bundle is required.");
+    if (!items.some((item) => item.itemName.trim()))
+      errors.push("Please add at least one item.");
+    if (!items.some((item) => item.rate.trim()))
+      errors.push("Rate is required.");
+    if (errors.length) {
+      showError("Form Error", errors.join("\n"));
+      return false;
+    }
     return true;
   }, [customerName, totalPcs, bundles, items]);
 
