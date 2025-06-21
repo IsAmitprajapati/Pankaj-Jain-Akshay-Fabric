@@ -84,36 +84,43 @@ const UpiQRModalBar = ({ visible, onClose, upiId, payeeName, amount, bundles }: 
     <View style={styles.modalContainer}>
       <Text style={styles.title}>Scan to Pay</Text>
 
-      {qrError ? (
-        <View style={styles.qrPlaceholder}>
-          <Text style={styles.errorText}>Failed to generate QR Code</Text>
-          <TouchableOpacity
-            onPress={handleRetry}
-            style={styles.retryButton}
-          >
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
+      <View style={{flexDirection : 'row', gap : 40, alignItems : 'center'}}>
+        {qrError ? (
+          <View style={styles.qrPlaceholder}>
+            <Text style={styles.errorText}>Failed to generate QR Code</Text>
+            <TouchableOpacity
+              onPress={handleRetry}
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : isQrReady && qrValue ? (
+          <View style={styles.qrContainer}>
+            <QRCode
+              value={qrValue}
+              size={80}
+              onError={handleQRError}
+              backgroundColor="white"
+              color="black"
+            />
+          </View>
+        ) : (
+          <View style={styles.qrPlaceholder}>
+            <ActivityIndicator size="large" color="#666" />
+            <Text style={styles.loadingText}>Generating QR Code...</Text>
+          </View>
+        )}
+
+        <View>
+              <Text style={{fontWeight : 500}}>Akshay Fabrics</Text>
+              <Text>Mob no. 9820116595</Text>
         </View>
-      ) : isQrReady && qrValue ? (
-        <View style={styles.qrContainer}>
-          <QRCode
-            value={qrValue}
-            size={80}
-            onError={handleQRError}
-            backgroundColor="white"
-            color="black"
-          />
-        </View>
-      ) : (
-        <View style={styles.qrPlaceholder}>
-          <ActivityIndicator size="large" color="#666" />
-          <Text style={styles.loadingText}>Generating QR Code...</Text>
-        </View>
-      )}
+      </View>
 
       <View style={{ flexDirection: 'row', gap: 25 }}>
         <Text style={styles.upiText}>UPI ID: {upiId}</Text>
-        <View style={[{ margin: "auto" , flexDirection : "row", gap : 2 }]}>
+        <View style={[{ margin: "auto", flexDirection: "row", gap: 2 }]}>
           <Text style={styles.printLabel}>Bundles:</Text>
           <View style={[styles.printLabelValue, { width: "20%" }]}>
             <Text>{bundles}</Text>
