@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+
 
 interface IUpiPros {
   visible: boolean,
@@ -13,28 +14,70 @@ interface IUpiPros {
 const UpiQRModal = ({ visible, onClose, upiId, payeeName, amount }: IUpiPros) => {
   const [qrValue, setQrValue] = useState<string>('');
   const [isQrReady, setIsQrReady] = useState<boolean>(false);
+  const [qrError, setQrError] = useState<boolean>(false);
+
+  const generateUPIUrl = () => {
+    try {
+      // Clean the amount string to remove currency symbols and commas
+      const cleanAmount = amount.replace(/[₹,]/g, '');
+      const numericAmount = parseFloat(cleanAmount);
+
+      if (isNaN(numericAmount) || numericAmount <= 0) {
+        console.error('Invalid or non-positive amount for QR code:', amount);
+        return null;
+      }
+
+      const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${numericAmount.toFixed(2)}&cu=INR`;
+      return upiUrl;
+    } catch (error) {
+      console.error('Error generating UPI URL:', error);
+      return null;
+    }
+  };
+
+  const generateQrCode = () => {
+    if (!upiId || !payeeName || !amount) {
+      setQrError(true);
+      setIsQrReady(false);
+      return;
+    }
+
+    const upiUrl = generateUPIUrl();
+    if (upiUrl) {
+      setQrValue(upiUrl);
+      setIsQrReady(true);
+      setQrError(false);
+    } else {
+      setQrError(true);
+      setIsQrReady(false);
+    }
+  };
 
   useEffect(() => {
-    if (visible && upiId && payeeName && amount) {
-      try {
-        const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-          payeeName
-        )}&am=${amount}&cu=INR`;
-        setQrValue(upiUrl);
-        setIsQrReady(true);
-      } catch (error) {
-        console.error('Error generating UPI URL:', error);
-        Alert.alert('Error', 'Failed to generate QR code');
-        onClose();
-      }
+    if (visible) {
+      generateQrCode();
+    } else {
+      // Reset state when modal is closed to avoid showing stale data
+      setIsQrReady(false);
+      setQrValue('');
+      setQrError(false);
     }
   }, [visible, upiId, payeeName, amount]);
 
   const handleClose = () => {
-    setIsQrReady(false);
-    setQrValue('');
     onClose();
   };
+
+  const handleQRError = (error: any) => {
+    console.error('QR Code generation error:', error);
+    setQrError(true);
+    setIsQrReady(false);
+  };
+
+  const handleRetry = () => {
+    generateQrCode();
+  };
+
 
   return (
     <Modal
@@ -42,23 +85,35 @@ const UpiQRModal = ({ visible, onClose, upiId, payeeName, amount }: IUpiPros) =>
       animationType="fade"
       visible={visible}
       onRequestClose={handleClose}
+      statusBarTranslucent={Platform.OS === 'android'}
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Scan to Pay</Text>
 
-          {isQrReady && qrValue ? (
-            <QRCode 
-              value={qrValue} 
-              size={200}
-              onError={(error : any) => {
-                console.error('QR Code generation error:', error);
-                Alert.alert('Error', 'Failed to generate QR code');
-                handleClose();
-              }}
-            />
+          {qrError ? (
+            <View style={styles.qrPlaceholder}>
+              <Text style={styles.errorText}>Failed to generate QR Code</Text>
+              <TouchableOpacity 
+                onPress={handleRetry}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : isQrReady && qrValue ? (
+            <View style={styles.qrContainer}>
+              <QRCode 
+                value={qrValue} 
+                size={200}
+                onError={handleQRError}
+                backgroundColor="white"
+                color="black"
+              />
+            </View>
           ) : (
             <View style={styles.qrPlaceholder}>
+              <ActivityIndicator size="large" color="#666" />
               <Text style={styles.loadingText}>Generating QR Code...</Text>
             </View>
           )}
@@ -90,12 +145,28 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     width: '80%',
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 200,
+    height: 200,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 10,
   },
   amountText: {
     marginTop: 16,
@@ -129,5 +200,23 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     color: '#666',
+    marginTop: 10,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#ff0000',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
