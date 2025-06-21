@@ -1,3 +1,4 @@
+import UpiQRModalBar from "@/components/OnlyQRCode";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import UpiQRModal from "@/components/UpiQRModal";
 import { getFormatCurrency } from "@/utils/formatCurrency";
@@ -106,21 +107,20 @@ export default function HomeScreen() {
   }, []);
 
   const getTotalAmountBalanceOutstading = useCallback(() => {
-    const tot = `${getTotalAmount()}${
-      balanceOutstanding
-        ? /^[+-]/.test(balanceOutstanding)
-          ? balanceOutstanding
-          : `+${balanceOutstanding}`
-        : ""
-    }`;
+    const tot = `${getTotalAmount()}${balanceOutstanding
+      ? /^[+-]/.test(balanceOutstanding)
+        ? balanceOutstanding
+        : `+${balanceOutstanding}`
+      : ""
+      }`;
     const result = evaluateExpression(tot);
     return isNaN(result)
       ? "₹0.00"
       : new Intl.NumberFormat("en-IN", {
-          style: "currency",
-          currency: "INR",
-          minimumFractionDigits: 2,
-        }).format(result);
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 2,
+      }).format(result);
   }, [getTotalAmount, balanceOutstanding, evaluateExpression]);
 
   const getNextSlipId = async () => {
@@ -255,6 +255,8 @@ export default function HomeScreen() {
       setIsGenerating(false);
     }
   };
+
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -829,26 +831,34 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.printFooter}>
-                  <Text
-                    style={[
-                      styles.printLabel,
-                      {
-                        marginLeft: "auto",
-                        width: "auto",
-                      },
-                    ]}
-                  >
-                    Balance :{" "}
-                    {balanceOutstanding ? `₹${balanceOutstanding}` : "0"}
-                  </Text>
-                  <Text style={styles.printTotalText}>
-                    Total Amount:
-                    {getTotalAmountBalanceOutstading()}
-                  </Text>
-                  <View style={styles.rowStart}>
-                    <Text style={styles.printLabel}>Bundles:</Text>
-                    <View style={[styles.printLabelValue, { width: "50%" }]}>
-                      <Text>{bundles}</Text>
+                  <View style={{flexDirection : 'row'}}>
+                    <View style={{ marginRight: 'auto'}}>
+                      <UpiQRModalBar
+                        amount={getTotalAmountBalanceOutstading()}
+                        onClose={handleCloseGPay}
+                        payeeName={payeeName}
+                        upiId={upiId}
+                        visible={true}
+                        bundles={bundles}
+                      />
+                    </View>
+                    <View>
+                      <Text
+                        style={[
+                          styles.printLabel,
+                          {
+                            marginLeft: "auto",
+                            width: "auto",
+                          },
+                        ]}
+                      >
+                        Balance :{" "}
+                        {balanceOutstanding ? `₹${balanceOutstanding}` : "0"}
+                      </Text>
+                      <Text style={styles.printTotalText}>
+                        Total Amount:
+                        {getTotalAmountBalanceOutstading()}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -1133,5 +1143,14 @@ const styles = StyleSheet.create({
   },
   gap: {
     gap: 5,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 200,
+    height: 200,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 10,
   },
 });
