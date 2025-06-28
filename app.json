@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Packing Slip",
-    "slug": "packingslip",
+    "slug": "pankaj-jain-akshay-fabric",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -46,8 +46,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "881129cc-c443-4a57-83b4-71ae057d1920"
+        "projectId": "da675daf-9c74-44a9-b63a-cf6714f34371"
       }
-    }
+    },
+    "owner": "alareo"
   }
 }
