@@ -79,8 +79,7 @@ const UpiQRModalBar = ({ visible, onClose, upiId, payeeName, amount, bundles }: 
     generateQrCode();
   };
 
-
-  return (
+  return(
     <View style={styles.modalContainer}>
       <Text style={styles.title}>Scan to Pay</Text>
 
@@ -113,22 +112,22 @@ const UpiQRModalBar = ({ visible, onClose, upiId, payeeName, amount, bundles }: 
         )}
 
         <View>
-              <Text style={{fontWeight : 500}}>Akshay Fabrics</Text>
-              <Text>Mob no. 9820116595</Text>
+              <Text style={{fontWeight : 500, fontSize : 18}}>Akshay Fabrics</Text>
+              <Text style={{fontSize : 18}}>Mob no. 9820116595</Text>
         </View>
       </View>
 
       <View style={{ flexDirection: 'row', gap: 25 }}>
         <Text style={styles.upiText}>UPI ID: {upiId}</Text>
-        <View style={[{ margin: "auto", flexDirection: "row", gap: 2 }]}>
+        <View style={[{ margin: "auto", flexDirection: "row", gap: 2, marginRight : -150 }]}>
           <Text style={styles.printLabel}>Bundles:</Text>
-          <View style={[styles.printLabelValue, { width: "20%" }]}>
-            <Text>{bundles}</Text>
+          <View style={[styles.printLabelValue, { width: "10%" }]}>
+            <Text style={{ fontSize : 20, paddingLeft : 10}}>{bundles}</Text>
           </View>
         </View>
       </View>
     </View>
-  );
+  )
 };
 
 export default UpiQRModalBar;
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   upiText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   closeButton: {
@@ -188,8 +187,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   qrPlaceholder: {
-    width: 200,
-    height: 200,
+    width: 80,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
@@ -243,12 +242,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   printLabel: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "500",
   },
   printLabelValue: {
     borderBottomWidth: 1,
     borderColor: "#7a7979",
     minWidth: 200,
+    fontSize : 20
   },
 });

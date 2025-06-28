@@ -40,7 +40,7 @@ interface Item {
   itemDescription?: string;
 }
 
-const MAX_ITEMS = 7;
+const MAX_ITEMS = 10;
 
 const initialItem = (): Item => ({
   id: Date.now() + Math.random(),
@@ -354,7 +354,7 @@ export default function HomeScreen() {
                   <Text style={styles.clearButtonText}>Clear All</Text>
                 </TouchableOpacity>
               </View>
-              <View style={styles.inputGroup}>
+              {/* <View style={styles.inputGroup}>
                 <Text style={styles.label}>Mobile Number</Text>
                 <TextInput
                   style={styles.textInput}
@@ -366,7 +366,7 @@ export default function HomeScreen() {
                   ref={currenctField}
                   returnKeyType="next"
                 />
-              </View>
+              </View> */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Date</Text>
                 <TextInput
@@ -673,12 +673,12 @@ export default function HomeScreen() {
               }}
             >
               <View style={styles.printableContainer}>
-                <View style={styles.printHeader}>
+                {/* <View style={styles.printHeader}>
                   <Text style={styles.printTitle}>PACKING SLIP</Text>
-                </View>
+                </View> */}
 
                 <View style={styles.printInfoSection}>
-                  <View style={styles.printRow}>
+                  {/* <View style={styles.printRow}>
                     <View style={styles.rowStart}>
                       <Text style={styles.printLabel}>Mobile No.:</Text>
                       <View style={styles.printLabelValue}>
@@ -689,19 +689,25 @@ export default function HomeScreen() {
                     <Text style={styles.printLabel}>
                       Date: <Text style={styles.printLabelValue}>{date}</Text>
                     </Text>
-                  </View>
+                  </View> */}
 
                   <View style={styles.printRow}>
                     <View style={styles.rowStart}>
                       <Text style={styles.printLabel}>Name:</Text>
-                      <View style={[styles.printLabelValue, { width: "80%" }]}>
-                        <Text>{customerName}</Text>
+                      <View style={[styles.printLabelValue]}>
+                        <Text style={{fontSize : 24}}>{customerName}</Text>
                       </View>
                     </View>
 
+                    <View style={{ flexDirection : 'row', alignItems : 'center', gap : 5, marginLeft :'auto'}}>
                     <Text style={styles.printLabel}>
-                      Time: {moment().format("HH:mm")}
+                      Date: <Text style={styles.printLabelValue}>{date}</Text>
                     </Text>
+                      <Text style={styles.printLabel}>
+                        Time: {moment().format("HH:mm")}
+                      </Text>
+                    </View>
+                    
                   </View>
                 </View>
 
@@ -720,7 +726,7 @@ export default function HomeScreen() {
                       style={[
                         styles.printTableCell,
                         styles.printTableHeaderCell,
-                        { width: "30%" },
+                        { width: "31%" },
                       ]}
                     >
                       Description
@@ -738,7 +744,7 @@ export default function HomeScreen() {
                       style={[
                         styles.printTableCell,
                         styles.printTableHeaderCell,
-                        { width: "15%" },
+                        { width: "13%" },
                       ]}
                     >
                       Total Mtr.
@@ -747,7 +753,7 @@ export default function HomeScreen() {
                       style={[
                         styles.printTableCell,
                         styles.printTableHeaderCell,
-                        { width: "15%" },
+                        { width: "13%" },
                       ]}
                     >
                       Rate
@@ -756,7 +762,7 @@ export default function HomeScreen() {
                       style={[
                         styles.printTableCell,
                         styles.printTableHeaderCell,
-                        { width: "15%" },
+                        { width: "18%" },
                       ]}
                     >
                       Amount
@@ -765,25 +771,25 @@ export default function HomeScreen() {
 
                   {[
                     ...items,
-                    ...Array(Math.max(0, 7 - items.length)).fill({}),
+                    ...Array(Math.max(0, MAX_ITEMS - items.length)).fill({}),
                   ].map((item, index) => (
                     <View key={index} style={styles.printTableRow}>
                       <Text style={[styles.printTableCell, { width: "15%" }]}>
                         {item?.itemName || ""}
                       </Text>
-                      <Text style={[styles.printTableCell, { width: "30%" }]}>
+                      <Text style={[styles.printTableCell, { width: "31%" }]}>
                         {item?.itemDescription || ""}
                       </Text>
                       <Text style={[styles.printTableCell, { width: "10%" }]}>
                         {item?.pc || ""}
                       </Text>
-                      <Text style={[styles.printTableCell, { width: "15%" }]}>
+                      <Text style={[styles.printTableCell, { width: "13%" }]}>
                         {item?.totalMeter || ""}
                       </Text>
-                      <Text style={[styles.printTableCell, { width: "15%" }]}>
+                      <Text style={[styles.printTableCell, { width: "13%" }]}>
                         {item?.rate ? `₹${item.rate}` : ""}
                       </Text>
-                      <Text style={[styles.printTableCell, { width: "15%" }]}>
+                      <Text style={[styles.printTableCell, { width: "18%" }]}>
                         {item?.total > 0 ? getFormatCurrency(item.total) : ""}
                       </Text>
                     </View>
@@ -794,7 +800,7 @@ export default function HomeScreen() {
                     <Text
                       style={[
                         styles.printTableCell,
-                        { width: "45%", fontWeight: "600" },
+                        { width: "46%", fontWeight: "600" },
                       ]}
                     >
                       Total
@@ -811,7 +817,7 @@ export default function HomeScreen() {
                       {/* {item?.pc || ""} */}
                       {totalPcs ? totalPcs : ""}
                     </Text>
-                    <Text style={[styles.printTableCell, { width: "30%" }]}>
+                    <Text style={[styles.printTableCell, { width: "26%" }]}>
                       {/* {item?.totalMeter || ""} */}
                     </Text>
                     {/* <Text style={[styles.printTableCell, { width: "15%" }]}> */}
@@ -820,7 +826,7 @@ export default function HomeScreen() {
                     <Text
                       style={[
                         styles.printTableCell,
-                        { width: "15%", fontWeight: "600" },
+                        { width: "18%", fontWeight: "600" },
                       ]}
                     >
                       {getTotalAmount()
@@ -856,7 +862,7 @@ export default function HomeScreen() {
                         {balanceOutstanding ? `₹${balanceOutstanding}` : "0"}
                       </Text>
                       <Text style={styles.printTotalText}>
-                        Total Amount:
+                        Total Amount:{" "}
                         {getTotalAmountBalanceOutstading()}
                       </Text>
                     </View>
@@ -1092,18 +1098,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   printLabel: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "500",
   },
   printLabelValue: {
     borderBottomWidth: 1,
     borderColor: "#7a7979",
-    minWidth: 200,
+    minWidth: 350,
   },
   printTable: {
     borderWidth: 1,
     borderColor: "#7a7979",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   printTableHeader: {
     flexDirection: "row",
@@ -1118,7 +1124,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#7a7979",
     padding: 8,
-    fontSize: 14,
+    fontSize: 19,
     textAlignVertical: "top",
   },
   printTableHeaderCell: {
@@ -1126,10 +1132,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   printFooter: {
-    marginTop: 15,
+    marginTop: 7,
   },
   printTotalText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     textAlign: "right",
     marginBottom: 15,
